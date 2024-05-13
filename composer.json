@@ -1,0 +1,20 @@
+{
+    "name": "fondly-cz/wp-smtp-service",
+    "description": "A simple WordPress plugin for configuring SMTP settings.",
+    "type": "library",
+    "require": {
+        "nette/mail": "^4.0"
+    },
+    "license": "GPL",
+    "autoload": {
+        "psr-4": {
+            "FondlyCz\\WpSmtpService\\": "classes/"
+        }
+    },
+    "authors": [
+        {
+            "name": "fondly",
+            "email": "spoluprace@fondly.cz"
+        }
+    ]
+}
