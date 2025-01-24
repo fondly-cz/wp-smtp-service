@@ -4,16 +4,23 @@ namespace FondlyCz\WpSmtpService;
 require_once($_SERVER['DOCUMENT_ROOT'] . '/wp-load.php');
 
 use Nette\Mail\Message;
-use Nette\Mail\SendmailMailer;
 use Nette\Mail\SmtpMailer;
-use Nette\Mail\SendmailMailerException;
 use Nette\Mail\SmtpException;
 
 class WPSMTPServicePlugin {
 
-    // Constructor
-    public function __construct() {
-        
+    // Method to initialize SMTP defaults
+    public static function activate() {
+        if (get_option('wp_smtp_service_options') === false) {
+            $default_options = array(
+                'smtp_host' => '',
+                'smtp_port' => 587,
+                'smtp_username' => '',
+                'smtp_password' => '',
+                'smtp_encryption' => 'tls',
+            );
+            add_option('wp_smtp_service_options', $default_options);
+        }
     }
 
     public function init() {
@@ -123,21 +130,21 @@ class WPSMTPServicePlugin {
     public function customize_wp_mail($args) {
         $to      = $args['to'];
         $subject = $args['subject'];
-        $message = $args['message'];
+        $messageBody = $args['message'];
         $headers = $args['headers'];
 
         // Use Nette\Mail to send the email with SMTP
-        $message = new \Nette\Mail\Message();
+        $message = new Message();
         $message->setFrom($headers['From']);
         $message->addTo($to);
         $message->setSubject($subject);
-        $message->setHtmlBody($message);
+        $message->setHtmlBody($messageBody);
 
         // Retrieve SMTP settings from options
         $smtpOptions = get_option('wp_smtp_service_options');
 
         // Instantiate the Nette\Mail\SmtpMailer class with named parameters
-        $smtpMailer = new \Nette\Mail\SmtpMailer(
+        $smtpMailer = new SmtpMailer(
             host: $smtpOptions['smtp_host'],      // Replace with your SMTP host
             port: $smtpOptions['smtp_port'],      // Replace with your SMTP port
             username: $smtpOptions['smtp_username'],  // Replace with your SMTP username
@@ -151,13 +158,19 @@ class WPSMTPServicePlugin {
 
      // Method to send a test email
      public function send_test_email() {
-        $to = 'info@martinkokes.cz'; // Replace with the recipient email address
+        $current_user = wp_get_current_user();
+    
+        // Send the email to the currently logged in user
+        $to = $current_user->user_email;
         $subject = 'Your email works!';
         $body = 'This is a test email sent from your WordPress site. If you received this, your email configuration is working correctly.';
 
+
+        $SMTPOptions = get_option('wp_smtp_service_options');
+
         // Use Nette\Mail to send the test email with SMTP
-        $message = new \Nette\Mail\Message();
-        $message->setFrom('webmaster@liborcinka.cz'); // Replace with the sender email address
+        $message = new Message();
+        $message->setFrom($SMTPOptions['smtp_username']); // Replace with the sender email address
         $message->addTo($to);
         $message->setSubject($subject);
         $message->setHtmlBody($body);
@@ -165,7 +178,7 @@ class WPSMTPServicePlugin {
         $smtpMailer = $this->create_mailer();
         try {
             $smtpMailer->send($message);
-        } catch (\Nette\Mail\SmtpException $th) {
+        } catch (SmtpException $th) {
             echo '<div class="notice notice-error"><p>Test email failed to send!</p></div>';
             echo '<div class="notice notice-error"><p>' . $th->getMessage() . '</p></div>';
             return;
@@ -180,7 +193,7 @@ class WPSMTPServicePlugin {
         $smtpOptions = get_option('wp_smtp_service_options');
 
         // Instantiate the Nette\Mail\SmtpMailer class with named parameters
-        $smtpMailer = new \Nette\Mail\SmtpMailer(
+        $smtpMailer = new SmtpMailer(
             host: $smtpOptions['smtp_host'],
             port: $smtpOptions['smtp_port'],
             username: $smtpOptions['smtp_username'],

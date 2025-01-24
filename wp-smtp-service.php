@@ -16,6 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['send_test_mail'])) {
     header('location: ' . plugin_dir_url(__FILE__) . 'test-mail.php');
 }
 
+// Register the activation hook to initialize the plugin defaults to the database
+register_activation_hook(__FILE__, array(WPSMTPServicePlugin::class, 'activate'));
+
 // Instantiate the plugin class
 $WPSMTPService = new WPSMTPServicePlugin();
 $WPSMTPService->init();
