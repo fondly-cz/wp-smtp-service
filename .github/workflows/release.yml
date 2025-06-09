@@ -4,10 +4,14 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Required to create releases and upload assets
 
     steps:
       - name: Checkout code
@@ -16,11 +20,14 @@ jobs:
       - name: Set up PHP with required extensions
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1' # Adjust if needed
+          php-version: '8.1'
           extensions: fileinfo, openssl, gd, iconv, intl, json, mbstring, tokenizer
 
       - name: Validate PHP installation
         run: php -m
+
+      - name: Check PHP syntax
+        run: find . -type f -name "*.php" -exec php -l {} \;
 
       - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader
@@ -29,7 +36,8 @@ jobs:
         run: |
           mkdir -p build
           zip -r build/wp-smtp-service.zip . \
-            -x ".git*" "build*" ".github*" "vendor/bin/*" "tests/*"
+            -x "*.git*" "build/*" ".github/*" "vendor/bin/*" "tests/*" \
+               "phpunit.xml" "composer.*" "README.md" "*.lock"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
