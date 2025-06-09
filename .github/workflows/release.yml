@@ -1,0 +1,41 @@
+name: 🔖 Auto Release with Composer and PHP Extensions
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP with required extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1' # Adjust if needed
+          extensions: fileinfo, openssl, gd, iconv, intl, json, mbstring, tokenizer
+
+      - name: Validate PHP installation
+        run: php -m
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Create plugin zip
+        run: |
+          mkdir -p build
+          zip -r build/wp-smtp-service.zip . \
+            -x ".git*" "build*" ".github*" "vendor/bin/*" "tests/*"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: build/wp-smtp-service.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
