@@ -1,4 +1,4 @@
-# generate wordpress plugin readme file for Github for this plugin which can enable smtp service for wordpress
+# WP SMTP Service Plugin by [fondly.cz](https://www.fondly.cz)
 This plugin can be used to enable SMTP service for wordpress. It can be used to send emails from wordpress using SMTP service.
 
 ## Installation
